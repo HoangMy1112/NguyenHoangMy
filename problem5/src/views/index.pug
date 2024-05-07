@@ -1,0 +1,77 @@
+doctype html
+html
+  head
+    title Book Library
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css", integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z", crossorigin="anonymous")
+  body
+    .container.pt-5
+      h1.mb-4 Book Library
+      if books.length > 0
+        table.table.table-striped
+          thead
+            tr
+              th Title
+              th Author
+              th Pages
+              th Actions
+          tbody
+            each book in books
+              tr
+                td(class=`title_${book.id}`)= book.title
+                td(class=`author_${book.id}`)= book.author
+                td(class=`pages_${book.id}`)= book.pages
+                td
+                  form(action=`/books/delete/${book.id}`, method="post")
+                    button.btn.btn-danger(type="submit") Delete
+                    |
+                    button.ml-2.btn.btn-primary(type="button", onclick=`editBook(${book.id}, this)`) Update
+        hr
+      else
+        p No books found.
+      h2.mb-4 Add Book
+      form(action="/books", method="post")
+        .form-group
+          label(for="title") Title:
+          input.form-control(type="text", name="title", id="title")
+        .form-group
+          label(for="author") Author:
+          input.form-control(type="text", name="author", id="author")
+        .form-group
+          label(for="pages") Pages:
+          input.form-control(type="number", name="pages", id="pages")
+        button.btn.btn-primary(type="submit") Add
+
+  script.
+    function editBook(bookId, button) {
+      const titleCell = document.querySelector(`.title_${bookId}`);
+      const authorCell = document.querySelector(`.author_${bookId}`);
+      const pagesCell = document.querySelector(`.pages_${bookId}`);
+    
+      if (button.textContent === "Update") {
+        titleCell.innerHTML = `<input type="text" class="form-control" value="${titleCell.textContent}" name="title_${bookId}">`;
+        authorCell.innerHTML = `<input type="text" class="form-control" value="${authorCell.textContent}" name="author_${bookId}">`;
+        pagesCell.innerHTML = `<input type="number" class="form-control" value="${pagesCell.textContent}" name="pages_${bookId}">`;
+
+        button.textContent = "Save"; 
+      } else {
+        const newTitle = titleCell.querySelector('input').value;
+        const newAuthor = authorCell.querySelector('input').value;
+        const newPages = pagesCell.querySelector('input').value;
+
+        fetch(`/books/update/${bookId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            title: newTitle,
+            author: newAuthor,
+            pages: newPages
+          })
+        })
+        titleCell.innerHTML = `<td class="title_${bookId}">${newTitle}</td>`;
+        authorCell.innerHTML = `<td class="author_${bookId}">${newAuthor}</td>`;
+        pagesCell.innerHTML = `<td class="pages_${bookId}">${newPages}</td>`;
+        button.textContent = "Update"; 
+      }
+    }
